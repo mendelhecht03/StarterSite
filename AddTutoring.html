@@ -33,6 +33,7 @@
       justify-content: center;
       align-items: center;
       height: calc(100vh - 80px); /* Adjust for header height */
+      flex-direction: column;
     }
 
     .task-button {
@@ -60,6 +61,15 @@
         'GRAD' 0,
         'opsz' 24;
     }
+
+    textarea {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      height: 100px;
+      resize: none;
+    }
   </style>
 </head>
 <body>
@@ -67,11 +77,50 @@
     Tutoring Hours
   </header>
 
-  <div class="main-content">
-    <button class="task-button">
+  <div class="main-content" id="inputContainer">
+    <button class="task-button" id="taskButton" onclick="showTextarea()">
       <span class="material-symbols-outlined">more_time</span>
       More Hours
     </button>
   </div>
+
+  <script>
+    function showTextarea() {
+      const container = document.getElementById("inputContainer");
+
+      // Hide the button
+      const button = document.getElementById("taskButton");
+      button.style.display = "none";
+
+      // Create textarea
+      const textarea = document.createElement("textarea");
+      textarea.id = "hourTextarea";
+      textarea.placeholder = "Enter hours and press Enter...";
+
+      // Listen for Enter key
+      textarea.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault(); // prevent newline
+          removeTextarea();
+        }
+      });
+
+      container.appendChild(textarea);
+      textarea.focus();
+    }
+
+    function removeTextarea() {
+      const container = document.getElementById("inputContainer");
+      const textarea = document.getElementById("hourTextarea");
+
+      if (textarea) {
+        container.removeChild(textarea);
+      }
+
+      // Show button again
+      const button = document.getElementById("taskButton");
+      button.style.display = "flex";
+    }
+  </script>
 </body>
 </html>
