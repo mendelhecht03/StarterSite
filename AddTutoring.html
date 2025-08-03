@@ -32,7 +32,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: calc(100vh - 80px); /* Adjust for header height */
+      height: calc(100vh - 80px);
       flex-direction: column;
     }
 
@@ -112,7 +112,21 @@
     function removeTextarea() {
       const container = document.getElementById("inputContainer");
       const textarea = document.getElementById("hourTextarea");
+      const input = textarea.value.trim();
 
+      if (input !== "") {
+        // Send data to Google Sheet via Apps Script
+        fetch("https://script.google.com/macros/s/AKfycbwouWE3pG30IBLps84_R5z0Hje3g7u8f8tmyA2XnmHQc7VCMJmuGGgeXzBXj_eji1Rc/exec", {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `input=${encodeURIComponent(input)}`
+        });
+      }
+
+      // Remove textarea
       if (textarea) {
         container.removeChild(textarea);
       }
