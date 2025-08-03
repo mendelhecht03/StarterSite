@@ -62,13 +62,11 @@ header:hover {
   'opsz' 24;
 }
 
-textarea {
+#formContainer {
   margin-top: 20px;
-  padding: 10px;
-  font-size: 16px;
-  width: 300px;
-  height: 100px;
-  resize: none;
+  width: 640px;
+  height: 419px;
+  display: none; /* Hidden initially */
 }
 </style>
 </head>
@@ -78,48 +76,30 @@ textarea {
 </header>
 
 <div class="main-content" id="inputContainer">
-  <button class="task-button" id="taskButton" onclick="showTextarea()">
+  <button class="task-button" id="taskButton" onclick="showForm()">
     <span class="material-symbols-outlined">more_time</span>
     More Hours
   </button>
+
+  <div id="formContainer">
+    <iframe 
+      src="https://docs.google.com/forms/d/e/1FAIpQLSfW9k2ILKEJ-kSRC7Rp6nXyZAP2yY8GZwp5bCEahtl00SSq_Q/viewform?embedded=true" 
+      width="640" height="419" frameborder="0" marginheight="0" marginwidth="0">
+      Loading…
+    </iframe>
+  </div>
 </div>
 
 <script>
-function showTextarea() {
-  const container = document.getElementById("inputContainer");
-
-  // Hide the button
+function showForm() {
   const button = document.getElementById("taskButton");
+  const formDiv = document.getElementById("formContainer");
+
+  // Hide button, show form
   button.style.display = "none";
-
-  // Create textarea
-  const textarea = document.createElement("textarea");
-  textarea.id = "hourTextarea";
-  textarea.placeholder = "Enter hours and press Enter...";
-
-  // Listen for Enter key
-  textarea.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault(); // prevent newline
-      removeTextarea();
-    }
-  });
-
-  container.appendChild(textarea);
-  textarea.focus();
+  formDiv.style.display = "block";
 }
+</script>
 
-function removeTextarea() {
-  const container = document.getElementById("inputContainer");
-  const textarea = document.getElementById("hourTextarea");
-  const input = textarea.value.trim();
-
-  if (input !== "") {
-    // Send data to Google Sheet via Apps Script
-    fetch("https://script.google.com/macros/s/AKfycbyrqUOsfLL-X7PsmDTV_Qodt9jDScU0X_QjdxRyTLbIl83CiNqVy9EB1MGkZ9juObqq/exec", {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `input=${encode
+</body>
+</html>
