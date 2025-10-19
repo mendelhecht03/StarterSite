@@ -23,11 +23,32 @@
     main {
       font-size: 1.2em;
     }
+    /* Add responsive iframe styling */
+    .thermometer-embed {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .thermometer-embed iframe {
+      border: none;
+      width: 400px;
+      height: 600px;
+      max-width: 100%;
+    }
+    @media (max-width: 500px) {
+      .thermometer-embed iframe {
+        width: 100%;
+        height: 400px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>Welcome to My Starter Site</header>
   <main>
+    <div class="thermometer-embed">
+      <iframe src="fundraising-thermometer.html" title="Fundraising Thermometer"></iframe>
+    </div>
     <p>This is a simple website hosted on GitHub Pages.</p>
     <p>Feel free to customize it however you like.</p>
     <p><a href="preview.html">Try the HTML Previewer</a></p>
@@ -35,6 +56,3 @@
   </main>
 </body>
 </html>
-
-
-
