@@ -21,10 +21,9 @@
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    width: 120px; /* lock container width to thermometer width */
   }
 
-.goal-label {
+  .goal-label {
     font-size: 16px;
     font-weight: bold;
     color: #333;
@@ -34,17 +33,19 @@
     border-radius: 15px;
     border: 2px solid rgba(0,0,0,0.1);
     backdrop-filter: blur(8px);
-
-    display: inline-block;   /* let width fit content */
-    width: auto;             /* important: fit text */
-    white-space: nowrap;     /* prevent text from wrapping */
-}
-
-
+    display: inline-block;
+    width: auto;
+    white-space: nowrap;
+  }
 
   .thermometer {
-    width: 120px;
-    height: 400px;
+    display: inline-block; /* div expands to fit SVG width */
+  }
+
+  .thermometer svg {
+    display: block;        /* removes inline spacing */
+    height: 400px;         /* desired thermometer height */
+    width: auto;           /* width adjusts automatically */
   }
 
   .counter {
@@ -53,7 +54,7 @@
     color: #333;
     text-align: center;
     margin-top: 8px;
-    width: 100%;            /* match container width */
+    width: 100%;
   }
 
   .loading, .error-message {
@@ -80,8 +81,7 @@
   }
 
   @media(max-width:500px){
-    .thermometer-container { width: 80px; }
-    .thermometer { width: 80px; height: 300px; }
+    .thermometer svg { height: 300px; }
     .counter { font-size: 16px; }
   }
 </style>
@@ -90,46 +90,30 @@
 <div class="thermometer-container">
   <div class="goal-label">Goal: $2,000,000</div>
   <div class="thermometer">
-    <svg viewBox="12 10 145 400" width="120" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 160 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
       <defs>
-        <!-- Gradient for glassy tube -->
         <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
           <stop offset="50%" stop-color="#d9d9d9" stop-opacity="0.05"/>
           <stop offset="100%" stop-color="#ffffff" stop-opacity="0.15"/>
         </linearGradient>
-
-        <!-- Mercury gradient for gloss -->
         <linearGradient id="mercuryGloss" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="white" stop-opacity="0.5"/>
           <stop offset="50%" stop-color="white" stop-opacity="0.1"/>
           <stop offset="100%" stop-color="white" stop-opacity="0"/>
         </linearGradient>
-
-        <!-- Full thermometer shape as mask for mercury -->
         <mask id="tubeMask">
-          <path d="M60 20 
-                   a20 20 0 0 1 20 20 
-                   v240 
-                   a40 40 0 1 1 -40 0 
-                   V40 
-                   a20 20 0 0 1 20 -20 z" fill="white"/>
+          <path d="M60 20 a20 20 0 0 1 20 20 v240 a40 40 0 1 1 -40 0 V40 a20 20 0 0 1 20 -20 z" fill="white"/>
         </mask>
       </defs>
 
-      <!-- Mercury fill using proper masking -->
       <rect id="mercury" x="0" y="0" width="120" height="0" fill="#ff0000" mask="url(#tubeMask)"/>
       <rect id="mercuryGlossRect" x="0" y="0" width="120" height="0" fill="url(#mercuryGloss)" mask="url(#tubeMask)"/>
 
-      <!-- Glassy tube -->
       <path d="M60 20 a20 20 0 0 1 20 20 v240 a40 40 0 1 1 -40 0 V40 a20 20 0 0 1 20 -20 z"
             fill="url(#glassGradient)" stroke="#555" stroke-width="4"/>
+      <path d="M55 30 v220 a30 30 0 1 1 -20 0 V40 a15 15 0 0 1 15 -15 z" fill="white" opacity="0.15"/>
 
-      <!-- Highlights -->
-      <path d="M55 30 v220 a30 30 0 1 1 -20 0 V40 a15 15 0 0 1 15 -15 z"
-            fill="white" opacity="0.15"/>
-
-      <!-- Tick marks on top -->
       <g stroke="#555" stroke-width="1.5">
         <line x1="64" y1="40" x2="70" y2="40"/>
         <line x1="64" y1="70" x2="70" y2="70"/>
@@ -179,9 +163,8 @@ function animateTo(amount) {
   const duration = 2000;
   const startTime = performance.now();
 
-  // Full thermometer height for proper masking
-  const fullHeight = 400; // Full SVG height
-  const startY = 400; // Start from bottom
+  const fullHeight = 400;
+  const startY = 400;
 
   function animate(time) {
     const progress = Math.min((time - startTime) / duration, 1);
@@ -190,7 +173,6 @@ function animateTo(amount) {
     elements.counter.textContent = utils.formatCurrency(Math.round(current));
     elements.counter.setAttribute('data-current', current);
 
-    // Calculate mercury height as percentage of full thermometer
     const mercuryHeight = fullHeight * Math.min(1, current / CONFIG.GOAL);
     const mercuryY = startY - mercuryHeight;
 
