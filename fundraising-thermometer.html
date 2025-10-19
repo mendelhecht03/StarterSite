@@ -35,9 +35,11 @@
     border: 2px solid rgba(0,0,0,0.1);
     backdrop-filter: blur(8px);
 
-    width: auto;          /* fit content */
-    display: inline-block; /* make width adjust to content */
+    display: inline-block;   /* let width fit content */
+    width: auto;             /* important: fit text */
+    white-space: nowrap;     /* prevent text from wrapping */
 }
+
 
 
   .thermometer {
