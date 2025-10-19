@@ -22,6 +22,8 @@
     align-items: center;
     gap: 20px;
     width: max-content; /* container adapts to widest child */
+    position: relative;
+    padding-top: 100px; /* add space at top to accommodate thermometer */
   }
 
   .goal-label {
@@ -40,13 +42,12 @@
   }
 
   .thermometer {
-    width: 150px;  /* match text elements width */
+    width: 120px;
     height: 400px;
-    display: flex;
-    justify-content: flex-start;  /* align to left */
-    align-items: flex-start;      /* align to top */
-    margin-top: -50px;            /* move even higher */
-    margin-left: -15px;           /* move left */
+    position: relative;
+    top: -80px;                   /* move way up */
+    left: -30px;                  /* move way left */
+    transform: translateY(-20px); /* additional upward push */
   }
 
   .counter {
