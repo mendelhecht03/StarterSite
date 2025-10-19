@@ -24,7 +24,7 @@
     width: 120px; /* lock container width to thermometer width */
   }
 
-  .goal-label {
+.goal-label {
     font-size: 16px;
     font-weight: bold;
     color: #333;
@@ -34,9 +34,11 @@
     border-radius: 15px;
     border: 2px solid rgba(0,0,0,0.1);
     backdrop-filter: blur(8px);
-    width: 100%;            /* stretch to container width */
-    box-sizing: border-box;
-  }
+
+    width: auto;          /* fit content */
+    display: inline-block; /* make width adjust to content */
+}
+
 
   .thermometer {
     width: 120px;
