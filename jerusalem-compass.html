@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Jerusalem Compass — Alter Rebbe</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a0f05;
+      color: #f5e6c8;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 1.4em;
+      color: #d4a843;
+      text-align: center;
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      font-size: 0.75em;
+      color: #9a7d50;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .hebrew {
+      font-size: 1.1em;
+      color: #c8952a;
+      text-align: center;
+      margin-bottom: 20px;
+      direction: rtl;
+    }
+
+    /* ── Compass container ── */
+    .compass-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 24px;
+    }
+
+    /* Outer decorative ring */
+    .compass-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid #d4a843;
+      box-shadow:
+        0 0 18px 4px rgba(212,168,67,0.35),
+        inset 0 0 18px 4px rgba(212,168,67,0.15);
+    }
+
+    /* Rose layer — rotates so N always faces magnetic north */
+    .rose-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transition: transform 0.2s ease-out;
+    }
+
+    /* Compass rose (cardinal letters) */
+    .compass-rose {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .cardinal {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      font-size: 0.95em;
+      font-weight: bold;
+      color: #d4a843;
+      letter-spacing: 0.05em;
+    }
+    .cardinal.N { top: 8px; }
+    .cardinal.S { bottom: 8px; }
+    .cardinal.E { right: 8px; top: 50%; transform: translateY(-50%); width: auto; }
+    .cardinal.W { left: 8px;  top: 50%; transform: translateY(-50%); width: auto; }
+
+    /* Tick marks */
+    .ticks {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+    .tick {
+      position: absolute;
+      width: 2px;
+      background: #7a5c28;
+      left: 50%;
+      transform-origin: bottom center;
+      bottom: 50%;
+    }
+    .tick.major { height: 14px; background: #c8952a; }
+    .tick.minor { height: 7px; }
+
+    /* Needle layer — this rotates to point to Jerusalem */
+    .needle-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transition: transform 0.2s ease-out;
+    }
+
+    .needle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform-origin: bottom center;
+    }
+
+    /* Star of David tip on the needle */
+    .needle-tip {
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 80px solid #d4a843;
+      filter: drop-shadow(0 0 6px rgba(212,168,67,0.8));
+    }
+
+    .needle-tail {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 55px solid #5a3a1a;
+    }
+
+    /* Center dot */
+    .center-dot {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #d4a843;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      box-shadow: 0 0 8px rgba(212,168,67,0.7);
+    }
+
+    /* Menorah label on needle */
+    .needle-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -160%);
+      font-size: 0.6em;
+      color: #1a0f05;
+      background: #d4a843;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-weight: bold;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* ── Info panel ── */
+    .info-panel {
+      width: 100%;
+      max-width: 340px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #5a3a1a;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(90,58,26,0.5);
+      font-size: 0.88em;
+    }
+    .info-row:last-child { border-bottom: none; }
+
+    .info-label { color: #9a7d50; }
+    .info-value { color: #f5e6c8; font-weight: bold; }
+    .info-value.highlight { color: #d4a843; font-size: 1.1em; }
+
+    /* ── Permission button ── */
+    #permBtn {
+      background: #d4a843;
+      color: #1a0f05;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 32px;
+      font-size: 1em;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 16px;
+      box-shadow: 0 0 14px rgba(212,168,67,0.5);
+    }
+    #permBtn:active { transform: scale(0.97); }
+
+    /* ── Status / error ── */
+    #status {
+      font-size: 0.8em;
+      color: #9a7d50;
+      text-align: center;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+    #status.error { color: #c0392b; }
+
+    /* ── Halachic note ── */
+    .halachic-note {
+      max-width: 340px;
+      font-size: 0.75em;
+      color: #7a5c28;
+      text-align: center;
+      line-height: 1.6;
+      border-top: 1px solid #3a2510;
+      padding-top: 16px;
+      margin-top: 4px;
+    }
+    .halachic-note strong { color: #9a7d50; }
+  </style>
+</head>
+<body>
+
+  <h1>Jerusalem Compass</h1>
+  <div class="subtitle">Direction to the Beit HaMikdash</div>
+  <div class="hebrew">כיוון ירושלים — שו"ע אדמו"ר הזקן</div>
+
+  <div id="status">Tap the button to start</div>
+  <button id="permBtn">Enable Compass &amp; Location</button>
+
+  <!-- Compass -->
+  <div class="compass-wrapper" id="compassWrapper">
+    <div class="compass-ring"></div>
+
+    <!-- Rose layer: ticks + cardinal letters — rotates to keep N at true north -->
+    <div class="rose-layer" id="roseLayer">
+      <div class="ticks" id="tickContainer"></div>
+      <div class="compass-rose">
+        <div class="cardinal N">N</div>
+        <div class="cardinal S">S</div>
+        <div class="cardinal E">E</div>
+        <div class="cardinal W">W</div>
+      </div>
+    </div>
+
+    <!-- Rotating needle layer -->
+    <div class="needle-layer" id="needleLayer">
+      <div class="needle" id="needle">
+        <div class="needle-tip"></div>
+        <div class="needle-tail"></div>
+      </div>
+      <div class="needle-label">ירושלים</div>
+    </div>
+
+    <div class="center-dot"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-panel">
+    <div class="info-row">
+      <span class="info-label">Bearing to Jerusalem</span>
+      <span class="info-value highlight" id="bearingDisplay">—°</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Your Location</span>
+      <span class="info-value" id="locationDisplay">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Distance</span>
+      <span class="info-value" id="distanceDisplay">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Compass Heading</span>
+      <span class="info-value" id="headingDisplay">—°</span>
+    </div>
+  </div>
+
+  <div class="halachic-note">
+    <strong>Alter Rebbe's Ruling (שו"ע אדמו"ר הזקן או"ח צ"ד):</strong><br>
+    One must face toward the Beit HaMikdash — the Temple Mount in Jerusalem —
+    not merely "east." This compass calculates the precise great-circle bearing
+    to the Kodesh HaKodashim (31.7781°N, 35.2358°E) from your exact location,
+    as required by the Alter Rebbe's ruling that the direction be geographically
+    accurate and not approximate.
+  </div>
+
+<script>
+  // ── Constants ──────────────────────────────────────────────
+  // Temple Mount / Kodesh HaKodashim (Alter Rebbe: face the Beit HaMikdash)
+  const JERUSALEM_LAT = 31.7781;
+  const JERUSALEM_LON = 35.2358;
+
+  // ── State ──────────────────────────────────────────────────
+  let userLat = null;
+  let userLon = null;
+  let compassHeading = null; // degrees from north, clockwise
+  let bearingToJerusalem = null;
+
+  // ── Build tick marks ───────────────────────────────────────
+  const tickContainer = document.getElementById('tickContainer');
+  const cx = 150, cy = 150, r = 138;
+  for (let i = 0; i < 72; i++) {
+    const angle = i * 5;
+    const isMajor = i % 6 === 0;
+    const len = isMajor ? 14 : 7;
+    const angleRad = (angle - 90) * Math.PI / 180;
+    const x1 = cx + r * Math.cos(angleRad);
+    const y1 = cy + r * Math.sin(angleRad);
+    const x2 = cx + (r - len) * Math.cos(angleRad);
+    const y2 = cy + (r - len) * Math.sin(angleRad);
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;';
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', isMajor ? '#c8952a' : '#4a3018');
+    line.setAttribute('stroke-width', isMajor ? '2' : '1');
+    svg.appendChild(line);
+    tickContainer.appendChild(svg);
+  }
+
+  // ── Bearing calculation (great circle) ────────────────────
+  function toRad(deg) { return deg * Math.PI / 180; }
+  function toDeg(rad) { return rad * 180 / Math.PI; }
+
+  function calcBearing(lat1, lon1, lat2, lon2) {
+    const φ1 = toRad(lat1), φ2 = toRad(lat2);
+    const Δλ = toRad(lon2 - lon1);
+    const y = Math.sin(Δλ) * Math.cos(φ2);
+    const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+
+  function calcDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const φ1 = toRad(lat1), φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1), Δλ = toRad(lon2 - lon1);
+    const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  // ── Update the compass needle and rose ────────────────────
+  function updateNeedle() {
+    const needleLayer = document.getElementById('needleLayer');
+    const roseLayer   = document.getElementById('roseLayer');
+
+    if (compassHeading !== null) {
+      // Rose counter-rotates so N always faces magnetic north
+      roseLayer.style.transform = `rotate(${-compassHeading}deg)`;
+
+      if (bearingToJerusalem !== null) {
+        // Needle points toward Jerusalem in absolute space
+        needleLayer.style.transform = `rotate(${bearingToJerusalem - compassHeading}deg)`;
+      }
+    } else if (bearingToJerusalem !== null) {
+      // No compass — show static bearing, rose stays upright
+      roseLayer.style.transform = '';
+      needleLayer.style.transform = `rotate(${bearingToJerusalem}deg)`;
+    }
+  }
+
+  // ── UI updates ─────────────────────────────────────────────
+  function updateInfo() {
+    if (userLat !== null) {
+      document.getElementById('locationDisplay').textContent =
+        `${userLat.toFixed(4)}°, ${userLon.toFixed(4)}°`;
+
+      bearingToJerusalem = calcBearing(userLat, userLon, JERUSALEM_LAT, JERUSALEM_LON);
+      const dist = calcDistance(userLat, userLon, JERUSALEM_LAT, JERUSALEM_LON);
+
+      document.getElementById('bearingDisplay').textContent =
+        `${bearingToJerusalem.toFixed(1)}°`;
+      document.getElementById('distanceDisplay').textContent =
+        `${Math.round(dist).toLocaleString()} km`;
+    }
+
+    if (compassHeading !== null) {
+      document.getElementById('headingDisplay').textContent =
+        `${Math.round(compassHeading)}°`;
+    }
+
+    updateNeedle();
+  }
+
+  // ── Geolocation ────────────────────────────────────────────
+  function startLocation() {
+    if (!navigator.geolocation) {
+      setStatus('Geolocation not supported.', true);
+      return;
+    }
+    navigator.geolocation.watchPosition(
+      pos => {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+        updateInfo();
+        setStatus('');
+      },
+      err => setStatus(`Location error: ${err.message}`, true),
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
+  }
+
+  // ── Device Orientation (compass) ───────────────────────────
+  function startCompass() {
+    // iOS 13+ requires permission
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(state => {
+          if (state === 'granted') listenOrientation();
+          else setStatus('Compass permission denied.', true);
+        })
+        .catch(() => setStatus('Could not request compass permission.', true));
+    } else {
+      listenOrientation();
+    }
+  }
+
+  function listenOrientation() {
+    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+
+  function handleOrientation(e) {
+    // webkitCompassHeading: iOS gives compass heading directly (0=N, clockwise)
+    if (e.webkitCompassHeading != null) {
+      compassHeading = e.webkitCompassHeading;
+    } else if (e.absolute && e.alpha != null) {
+      // Android absolute: alpha is rotation around Z, 0=north
+      compassHeading = (360 - e.alpha) % 360;
+    } else if (e.alpha != null) {
+      compassHeading = (360 - e.alpha) % 360;
+    }
+    updateInfo();
+  }
+
+  // ── Button handler ─────────────────────────────────────────
+  function setStatus(msg, isError = false) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = isError ? 'error' : '';
+  }
+
+  document.getElementById('permBtn').addEventListener('click', () => {
+    document.getElementById('permBtn').style.display = 'none';
+    setStatus('Acquiring location and compass…');
+    startCompass();
+    startLocation();
+  });
+</script>
+</body>
+</html>
