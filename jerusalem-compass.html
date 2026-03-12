@@ -62,7 +62,15 @@
         inset 0 0 18px 4px rgba(212,168,67,0.15);
     }
 
-    /* Compass rose (cardinal letters) — does NOT rotate */
+    /* Rose layer — rotates so N always faces magnetic north */
+    .rose-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transition: transform 0.2s ease-out;
+    }
+
+    /* Compass rose (cardinal letters) */
     .compass-rose {
       position: absolute;
       inset: 0;
@@ -246,15 +254,15 @@
   <div class="compass-wrapper" id="compassWrapper">
     <div class="compass-ring"></div>
 
-    <!-- Tick marks (static) -->
-    <div class="ticks" id="tickContainer"></div>
-
-    <!-- Cardinal letters (static) -->
-    <div class="compass-rose">
-      <div class="cardinal N">N</div>
-      <div class="cardinal S">S</div>
-      <div class="cardinal E">E</div>
-      <div class="cardinal W">W</div>
+    <!-- Rose layer: ticks + cardinal letters — rotates to keep N at true north -->
+    <div class="rose-layer" id="roseLayer">
+      <div class="ticks" id="tickContainer"></div>
+      <div class="compass-rose">
+        <div class="cardinal N">N</div>
+        <div class="cardinal S">S</div>
+        <div class="cardinal E">E</div>
+        <div class="cardinal W">W</div>
+      </div>
     </div>
 
     <!-- Rotating needle layer -->
@@ -354,20 +362,22 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
-  // ── Update the compass needle ──────────────────────────────
+  // ── Update the compass needle and rose ────────────────────
   function updateNeedle() {
-    if (bearingToJerusalem === null) return;
-
     const needleLayer = document.getElementById('needleLayer');
+    const roseLayer   = document.getElementById('roseLayer');
 
     if (compassHeading !== null) {
-      // Rotate needle so it points toward Jerusalem
-      // needle up (0°) = north; we need it to point at bearing
-      // device heading tells us which way the top of the screen faces
-      const rotation = bearingToJerusalem - compassHeading;
-      needleLayer.style.transform = `rotate(${rotation}deg)`;
-    } else {
-      // No compass — just show static bearing angle
+      // Rose counter-rotates so N always faces magnetic north
+      roseLayer.style.transform = `rotate(${-compassHeading}deg)`;
+
+      if (bearingToJerusalem !== null) {
+        // Needle points toward Jerusalem in absolute space
+        needleLayer.style.transform = `rotate(${bearingToJerusalem - compassHeading}deg)`;
+      }
+    } else if (bearingToJerusalem !== null) {
+      // No compass — show static bearing, rose stays upright
+      roseLayer.style.transform = '';
       needleLayer.style.transform = `rotate(${bearingToJerusalem}deg)`;
     }
   }
